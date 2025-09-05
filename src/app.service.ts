@@ -102,8 +102,6 @@ export class AppService implements OnModuleInit {
       {customer: customerID}
     );
 
-    console.log(stripeSessionCreation);
-
     const stripeSession = await this.stripe.checkout.sessions.create(
       stripeSessionCreation
   );
