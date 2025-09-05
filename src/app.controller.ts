@@ -8,7 +8,7 @@ export class AppController {
   ) { }
 
 
-  // Listagem de usuários -----------------------------------------
+  // Listagem -----------------------------------------------------
   @Get("listPrices")
   async listPrices(): Promise<any> {
     return this.appService.listPrices();
