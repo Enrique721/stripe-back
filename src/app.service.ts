@@ -21,7 +21,7 @@ export class AppService implements OnModuleInit {
       console.log(data);
   }
 
-  // Listagem de usuários -----------------------------------------
+  // Listagem -----------------------------------------------------
   async listPrices(print: boolean = true) {
 
     // expand é uma opção muito útil para pegar dados relacionados de uma vez só
