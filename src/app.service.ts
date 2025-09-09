@@ -71,7 +71,7 @@ export class AppService implements OnModuleInit {
         id: subscription.id,
         status: subscription.status,
         trial_end: subscription.trial_end,
-        items: subscription.items.data.map((item) => { return { id: item.id } })
+        items: subscription.items.data.map((item) => { return { id: item.id} })
       }
     });
     return subscriptionIDs;
@@ -128,14 +128,14 @@ export class AppService implements OnModuleInit {
 
     const stripeSession = await this.stripe.checkout.sessions.create(
       stripeSessionCreation
-  );
+    );
 
     return stripeSession;
   }
 
   async createStripeSessionNoCard() {
 
-    const priceId = (await this.listPrices()).find((price) => price[1] === 0);
+    const priceId = (await this.listPrices()).find((price) => price.unit_amount === 0);
 
     const customer = await this.stripe.customers.create({
       name: "Opal2",
@@ -149,7 +149,7 @@ export class AppService implements OnModuleInit {
     
     const subscription = await this.stripe.subscriptions.create({
       customer: customerID,
-      items: [{ price: (priceId[0] as string) }],
+      items: [{ price: priceId.id }],
     });
     return subscription;
   }
@@ -176,5 +176,4 @@ export class AppService implements OnModuleInit {
     return subscription;
   }
   //--------------------------------------------------------------------
-
 }
