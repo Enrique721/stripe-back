@@ -66,7 +66,14 @@ export class AppService implements OnModuleInit {
     const subscriptions = await this.stripe.subscriptions.list();
     this.printData(print, subscriptions);
 
-    const subscriptionIDs = subscriptions.data.map((subscription) => { return { id: subscription.id, status: subscription.status, trial_end: subscription.trial_end } });
+    const subscriptionIDs = subscriptions.data.map((subscription) => {
+      return {
+        id: subscription.id,
+        status: subscription.status,
+        trial_end: subscription.trial_end,
+        items: subscription.items.data.map((item) => { return { id: item.id } })
+      }
+    });
     return subscriptionIDs;
 
   }
