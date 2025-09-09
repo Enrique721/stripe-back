@@ -29,35 +29,45 @@ export class AppService implements OnModuleInit {
       expand: ["data.product"]
     });
     this.printData(print, prices);
-    return prices;
+
+    const pricesDataIDs = prices.data.map((price) => { return { id: price.id, unit_amount: price.unit_amount } });
+    return pricesDataIDs;
   }
 
   async listSessions(print: boolean = true) {
 
     const sessions = await this.stripe.checkout.sessions.list();
     this.printData(print, sessions);
-    return sessions;
+
+    const sessionsIDs = sessions.data.map((session) => { return { id: session.id, status: session.status } });
+    return sessionsIDs;
   }
 
   async listClients(print: boolean = true) {
 
     const clients = await this.stripe.customers.list();
     this.printData(print, clients);
-    return clients;
+
+    const clientIDs = clients.data.map((client) => { return { id: client.id, name: client.name } });
+    return clientIDs;
   }
 
   async listProducts(print: boolean = true) {
 
     const products = await this.stripe.products.list();
     this.printData(print, products);
-    return products;
+
+    const productIDs = products.data.map((product) => { return { id: product.id, name: product.name } });
+    return productIDs;
   }
 
   async listSubscription(print: boolean = true) {
 
     const subscriptions = await this.stripe.subscriptions.list();
     this.printData(print, subscriptions);
-    return subscriptions;
+
+    const subscriptionIDs = subscriptions.data.map((subscription) => { return { id: subscription.id, status: subscription.status, trial_end: subscription.trial_end } });
+    return subscriptionIDs;
 
   }
 
@@ -66,12 +76,19 @@ export class AppService implements OnModuleInit {
   // Create session subscription -------------------------------------------
   private async stripeSessionCreationOption(extraArgs?: any) {
     const prices = await this.listPrices(false);
+
+    const priceFree = prices.find((price) => price.unit_amount === 0);
+    const pricePaid = prices.find((price) => price.unit_amount !== 0);
+
+    if (!priceFree || !pricePaid)
+      return;
+
     const stripeCreationOption: Stripe.Checkout.SessionCreateParams | undefined = {
       // Mudar para required depois
       billing_address_collection: 'auto',
       line_items: [
         {
-          price: prices.data[0].id,
+          price: priceFree.id,
           quantity: 1,
         }
       ],
@@ -107,6 +124,27 @@ export class AppService implements OnModuleInit {
   );
 
     return stripeSession;
+  }
+
+  async createStripeSessionNoCard() {
+
+    const priceId = (await this.listPrices()).find((price) => price[1] === 0);
+
+    const customer = await this.stripe.customers.create({
+      name: "Opal2",
+      email: "umemailqualquer@alkdjslakdjs.com"
+    });
+
+    if (!priceId)
+      return
+
+    const customerID = customer.id;
+    
+    const subscription = await this.stripe.subscriptions.create({
+      customer: customerID,
+      items: [{ price: (priceId[0] as string) }],
+    });
+    return subscription;
   }
   // -------------------------------------------------------------------
 

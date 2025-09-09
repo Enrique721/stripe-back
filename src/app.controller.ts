@@ -37,6 +37,13 @@ export class AppController {
 
 
   // Create checkout sessions subscription -------------------------
+
+  @Get('no-cost')
+  async createNoCostSession(): Promise<any> {
+
+    return this.appService.createStripeSessionNoCard();
+  }
+
   @Get('createSession')
   async createSessionStripe(): Promise<any> {
 
