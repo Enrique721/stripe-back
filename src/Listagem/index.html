@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste de Rotas - Stripe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      pre::-webkit-scrollbar {
+        height: 8px;
+        background-color: #3f3f46;
+      }
+      pre::-webkit-scrollbar-thumb {
+        background-color: #a1a1aa;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-900 text-gray-100 font-sans flex justify-center items-center min-h-screen"
+  >
+    <div class="max-w-4xl mx-auto p-8 bg-slate-800 rounded-3xl shadow-2xl">
+      <header class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-2">
+          Teste de Rotas Stripe
+        </h1>
+        <p class="text-slate-400">
+          Clique nos botões para testar as rotas da sua API.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+        <button
+          onclick="changeContent('listPrices')"
+          class="px-6 py-4 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-indigo-600 transform transition-all duration-300"
+        >
+          Listar Preços
+        </button>
+        <button
+          onclick="changeContent('listClients')"
+          class="px-6 py-4 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-indigo-600 transform transition-all duration-300"
+        >
+          Listar Clientes
+        </button>
+        <button
+          onclick="changeContent('listSessions')"
+          class="px-6 py-4 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-indigo-600 transform transition-all duration-300"
+        >
+          Listar Sessões
+        </button>
+        <button
+          onclick="changeContent('listProducts')"
+          class="px-6 py-4 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-indigo-600 transform transition-all duration-300"
+        >
+          Listar Produtos
+        </button>
+        <button
+          onclick="changeContent('listSubscription')"
+          class="px-6 py-4 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-indigo-600 transform transition-all duration-300"
+        >
+          Listar Assinaturas
+        </button>
+        <button
+          onclick="changeContent('createSession')"
+          class="px-6 py-4 bg-slate-700 text-white rounded-xl shadow-lg hover:bg-indigo-600 transform transition-all duration-300"
+        >
+          Criar Sessão
+        </button>
+      </div>
+
+      <div class="bg-slate-700 p-6 rounded-2xl shadow-xl">
+        <div id="loader" class="text-center hidden">
+          <svg
+            class="animate-spin h-12 w-12 mx-auto text-indigo-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v16a8 8 0 01-8-8z"
+            ></path>
+          </svg>
+          <p class="text-slate-400 mt-4">Carregando...</p>
+        </div>
+
+        <div id="result-display">
+          <p class="text-slate-400 text-center py-10">
+            Escolha uma opção acima para ver os resultados.
+          </p>
+        </div>
+      </div>
+    </div>
+    <script>
+      let isLoading = false;
+
+      async function fetchData(route) {
+        isLoading = true;
+        updateLoadingState();
+        try {
+          const response = await fetch(`http://localhost:4545/${route}`);
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error(error);
+          return {
+            error: 'Ocorreu um erro na requisição.',
+            details: error.message,
+          };
+        } finally {
+          isLoading = false;
+          updateLoadingState();
+        }
+      }
+
+      function updateLoadingState() {
+        const loader = document.getElementById('loader');
+        const resultDisplay = document.getElementById('result-display');
+        if (isLoading) {
+          loader.classList.remove('hidden');
+          resultDisplay.classList.add('hidden');
+        } else {
+          loader.classList.add('hidden');
+          resultDisplay.classList.remove('hidden');
+        }
+      }
+
+      async function changeContent(option) {
+        const resultDisplay = document.getElementById('result-display');
+        resultDisplay.innerHTML = `<p class="text-slate-400 text-center py-10">Carregando...</p>`;
+
+        let data;
+        switch (option) {
+          case 'listPrices':
+            data = await fetchData('listPrices');
+            break;
+          case 'listClients':
+            data = await fetchData('listClients');
+            break;
+          case 'listSessions':
+            data = await fetchData('listSessions');
+            break;
+          case 'listProducts':
+            data = await fetchData('listProducts');
+            break;
+          case 'listSubscription':
+            data = await fetchData('listSubscription');
+            break;
+          case 'createSession':
+            data = await fetchData('createSession');
+            break;
+          default:
+            data = { error: 'Opção inválida!' };
+        }
+
+        resultDisplay.innerHTML = `
+          <h3 class="text-lg font-bold mb-4 text-indigo-400">${option}</h3>
+          <pre class="bg-slate-900 p-4 rounded-xl shadow-md overflow-x-auto text-sm text-lime-400">${JSON.stringify(data, null, 2)}</pre>
+        `;
+      }
+    </script>
+  </body>
+</html>

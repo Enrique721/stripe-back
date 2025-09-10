@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Testes Stripe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Chosen Palette: Slate Gray & Indigo -->
+    <!-- Application Structure Plan: A two-column grid layout for desktop, converting to a single column on mobile. The left column contains a tabbed interface for all test case forms. The right column is a dedicated, persistent display area for API responses. This design improves usability by keeping the user's input controls and the resulting output visible simultaneously, which is a common and effective pattern for developer dashboards. -->
+    <!-- Visualization & Content Choices: Report Info -> Testing different Stripe routes. Goal -> Provide a simple interface for each test case. Viz/Presentation Method -> Using basic HTML forms, buttons, and text blocks within styled containers, with a dedicated section to display JSON responses. Interaction -> User clicks a button to hide all other content panels and show the relevant one. JavaScript fetch API is used to send requests and handle responses dynamically. Justification -> This is the most direct and developer-friendly approach for a functional testing dashboard, avoiding unnecessary complexity and enabling real-time feedback. Library/Method -> Vanilla JavaScript for DOM manipulation and Fetch API calls. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .nav-button.active {
+        background-color: #4f46e5;
+        color: white;
+      }
+      /* Style do elemento Stripe */
+      #card-element {
+        border: 1px solid #cbd5e1;
+        padding: 12px;
+        border-radius: 6px;
+        background-color: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-100 flex items-center justify-center min-h-screen font-sans"
+  >
+    <div
+      class="w-full max-w-5xl min-h-[42rem] bg-white rounded-2xl shadow-lg p-6 md:p-10"
+    >
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">
+          Painel de Testes Stripe
+        </h1>
+        <p class="text-slate-500 mt-2">
+          Selecione uma opção para simular uma operação e testar sua integração.
+        </p>
+      </header>
+
+      <nav class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <button
+          id="nav-checkout"
+          class="nav-button w-full text-left p-4 rounded-lg bg-slate-200 text-slate-700 font-semibold transition-all duration-300 hover:bg-indigo-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 active"
+        >
+          <span class="block text-lg">Checkout</span>
+          <span class="block text-xs text-slate-500">Criar Sessão</span>
+        </button>
+        <button
+          id="nav-portal"
+          class="nav-button w-full text-left p-4 rounded-lg bg-slate-200 text-slate-700 font-semibold transition-all duration-300 hover:bg-indigo-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+        >
+          <span class="block text-lg">Portal</span>
+          <span class="block text-xs text-slate-500">Gerenciar Cliente</span>
+        </button>
+        <button
+          id="nav-assinaturas"
+          class="nav-button w-full text-left p-4 rounded-lg bg-slate-200 text-slate-700 font-semibold transition-all duration-300 hover:bg-indigo-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+        >
+          <span class="block text-lg">Assinaturas</span>
+          <span class="block text-xs text-slate-500"
+            >Gerenciar Assinaturas</span
+          >
+        </button>
+        <button
+          id="nav-webhooks"
+          class="nav-button w-full text-left p-4 rounded-lg bg-slate-200 text-slate-700 font-semibold transition-all duration-300 hover:bg-indigo-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+        >
+          <span class="block text-lg">Webhooks</span>
+          <span class="block text-xs text-slate-500">Ouvir Eventos</span>
+        </button>
+      </nav>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Coluna da Esquerda: Formulários -->
+        <div class="bg-slate-50 p-6 rounded-lg">
+          <main id="content-container">
+            <!-- Content for Checkout -->
+            <div id="content-checkout" class="tab-content active space-y-6">
+              <h2 class="text-2xl font-semibold text-slate-700">
+                Criar Sessão de Checkout
+              </h2>
+              <p class="text-slate-600">
+                Simula a criação de um pagamento recorrente (assinatura). O
+                backend vai retornar um objeto de sessão que inclui uma URL para
+                a página de checkout da Stripe.
+              </p>
+              <form id="form-create-session" class="space-y-4">
+                <div>
+                  <label
+                    for="checkout_customer_id"
+                    class="block text-sm font-medium text-slate-700"
+                    >ID do Cliente (Opcional)</label
+                  >
+                  <input
+                    type="text"
+                    id="checkout_customer_id"
+                    name="customer_id"
+                    placeholder="cus_xxxxxxxxxxxxxx"
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Gerar Sessão de Checkout
+                </button>
+              </form>
+            </div>
+
+            <!-- Content for Customer Portal -->
+            <div id="content-portal" class="tab-content space-y-6">
+              <h2 class="text-2xl font-semibold text-slate-700">
+                Acessar Portal do Cliente
+              </h2>
+              <p class="text-slate-600">
+                Simula a geração de um link para o portal do cliente, onde ele
+                pode gerenciar suas assinaturas e formas de pagamento.
+              </p>
+              <form id="form-portal" class="space-y-4">
+                <div>
+                  <label
+                    for="portal_customer_id"
+                    class="block text-sm font-medium text-slate-700"
+                    >ID do Cliente (Stripe)</label
+                  >
+                  <input
+                    type="text"
+                    id="portal_customer_id"
+                    name="customer_id"
+                    placeholder="cus_xxxxxxxxxxxxxx"
+                    required
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Gerar Link do Portal
+                </button>
+              </form>
+            </div>
+
+            <!-- Content for Subscriptions -->
+            <div id="content-assinaturas" class="tab-content space-y-8">
+              <h2 class="text-2xl font-semibold text-slate-700">
+                Gerenciar Assinaturas
+              </h2>
+              <p class="text-slate-600">
+                Nesta seção, você pode testar a criação, atualização e
+                cancelamento de assinaturas.
+              </p>
+
+              <!-- Create Subscription -->
+              <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-slate-700">
+                  Criar Nova Assinatura
+                </h3>
+                <form id="form-create-subscription" class="space-y-4">
+                  <div>
+                    <label
+                      for="sub_customer_id"
+                      class="block text-sm font-medium text-slate-700"
+                      >ID do Cliente (Stripe)</label
+                    >
+                    <input
+                      type="text"
+                      id="sub_customer_id"
+                      name="customer_id"
+                      placeholder="cus_xxxxxxxxxxxxxx"
+                      required
+                      class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="price_id"
+                      class="block text-sm font-medium text-slate-700"
+                      >ID do Preço (Stripe)</label
+                    >
+                    <input
+                      type="text"
+                      id="price_id"
+                      name="price_id"
+                      placeholder="price_xxxxxxxxxxxxxx"
+                      required
+                      class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Criar Assinatura
+                  </button>
+                </form>
+              </div>
+
+              <!-- Update Subscription -->
+              <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-slate-700">
+                  Atualizar Plano de Assinatura
+                </h3>
+                <form id="form-update-subscription" class="space-y-4">
+                  <div>
+                    <label
+                      for="update_sub_id"
+                      class="block text-sm font-medium text-slate-700"
+                      >ID da Assinatura</label
+                    >
+                    <input
+                      type="text"
+                      id="update_sub_id"
+                      name="sub_id"
+                      placeholder="sub_xxxxxxxxxxxxxx"
+                      required
+                      class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="update_item_id"
+                      class="block text-sm font-medium text-slate-700"
+                      >ID do Item da Assinatura</label
+                    >
+                    <input
+                      type="text"
+                      id="update_item_id"
+                      name="subscription_item_id"
+                      placeholder="si_xxxxxxxxxxxxxx"
+                      required
+                      class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="update_price_id"
+                      class="block text-sm font-medium text-slate-700"
+                      >Novo ID do Preço</label
+                    >
+                    <input
+                      type="text"
+                      id="update_price_id"
+                      name="update_price_id"
+                      placeholder="price_xxxxxxxxxxxxxx"
+                      required
+                      class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Atualizar Assinatura
+                  </button>
+                </form>
+              </div>
+
+              <!-- Cancel Subscription -->
+              <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-slate-700">
+                  Cancelar Assinatura
+                </h3>
+                <form id="form-cancel-subscription" class="space-y-4">
+                  <div>
+                    <label
+                      for="cancel_sub_id"
+                      class="block text-sm font-medium text-slate-700"
+                      >ID da Assinatura</label
+                    >
+                    <input
+                      type="text"
+                      id="cancel_sub_id"
+                      name="sub_id"
+                      placeholder="sub_xxxxxxxxxxxxxx"
+                      required
+                      class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Cancelar Assinatura
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Content for Webhooks -->
+            <div id="content-webhooks" class="tab-content space-y-6">
+              <h2 class="text-2xl font-semibold text-slate-700">
+                Simulação de Webhooks
+              </h2>
+              <p class="text-slate-600">
+                Seu endpoint de webhook (<code
+                  class="bg-slate-200 text-sm p-1 rounded"
+                  >/webhook</code
+                >) está ouvindo. Realize ações (como um pagamento bem-sucedido)
+                nos painéis de teste acima para ver os eventos registrados no
+                console do seu backend.
+              </p>
+              <div
+                class="w-full h-32 bg-slate-200 rounded-lg flex items-center justify-center"
+              >
+                <p class="text-slate-500">Aguardando eventos da Stripe...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+
+        <!-- Coluna da Direita: Resposta da API -->
+        <div class="bg-slate-50 p-6 rounded-lg">
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-slate-700">
+              Resposta da API:
+            </h3>
+            <pre
+              class="bg-slate-200 p-4 rounded-lg overflow-x-auto text-sm text-slate-800 h-96 min-h-full"
+              id="result-display"
+            >
+Aguardando requisição...</pre
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const navButtons = document.querySelectorAll('.nav-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const results = {
+          checkout: document.getElementById('result-display'),
+          portal: document.getElementById('result-display'),
+          assinaturas: document.getElementById('result-display'),
+        };
+
+        const BASE_URL = 'http://localhost:4545';
+
+        function showResult(tabId, data) {
+          const resultBlock = results[tabId];
+          if (!resultBlock) return;
+          resultBlock.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function switchTab(targetId) {
+          tabContents.forEach((content) => content.classList.remove('active'));
+          navButtons.forEach((button) => button.classList.remove('active'));
+
+          document
+            .getElementById(`content-${targetId}`)
+            .classList.add('active');
+          document.getElementById(`nav-${targetId}`).classList.add('active');
+
+          showResult(targetId, {
+            message: `Painel de Teste "${document.getElementById(`nav-${targetId}`).querySelector('span').textContent}" ativado.`,
+          });
+        }
+
+        navButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const targetId = button.id.split('-')[1];
+            switchTab(targetId);
+          });
+        });
+
+        document
+          .getElementById('form-create-session')
+          .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customerId = document.getElementById(
+              'checkout_customer_id',
+            ).value;
+            const url =
+              customerId.trim() !== ''
+                ? `/createSession/${customerId}`
+                : '/createSession';
+            showResult('checkout', { message: 'Carregando...' });
+            try {
+              const response = await fetch(`${BASE_URL}${url}`);
+              const data = await response.json();
+              showResult('checkout', data);
+              if (data.url) {
+                window.location.href = data.url;
+              }
+            } catch (error) {
+              showResult('checkout', {
+                error: 'Ocorreu um erro na requisição.',
+                details: error.message,
+              });
+            }
+          });
+
+        document
+          .getElementById('form-portal')
+          .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customerId =
+              document.getElementById('portal_customer_id').value;
+            const url = `${BASE_URL}/create-portal-session`;
+            showResult('portal', { message: 'Carregando...' });
+            try {
+              const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customer_id: customerId }),
+              });
+              const data = await response.json();
+              showResult('portal', data);
+              if (data.url) {
+                window.location.href = data.url;
+              }
+            } catch (error) {
+              showResult('portal', {
+                error: 'Ocorreu um erro na requisição.',
+                details: error.message,
+              });
+            }
+          });
+
+        document
+          .getElementById('form-create-subscription')
+          .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customerId = document.getElementById('sub_customer_id').value;
+            const priceId = document.getElementById('price_id').value;
+            showResult('assinaturas', { message: 'Carregando...' });
+            try {
+              const response = await fetch(`${BASE_URL}/create-subscription`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  customer_id: customerId,
+                  price_id: priceId,
+                }),
+              });
+              const data = await response.json();
+              showResult('assinaturas', data);
+            } catch (error) {
+              showResult('assinaturas', {
+                error: 'Ocorreu um erro na requisição.',
+                details: error.message,
+              });
+            }
+          });
+
+        document
+          .getElementById('form-update-subscription')
+          .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const subId = document.getElementById('update_sub_id').value;
+            const itemId = document.getElementById('update_item_id').value;
+            const priceId = document.getElementById('update_price_id').value;
+
+            showResult('assinaturas', { message: 'Atualizando assinatura...' });
+
+            try {
+              const url = `${BASE_URL}/updateSession/${subId}/${itemId}/${priceId}`;
+              const response = await fetch(url);
+              const data = await response.json();
+              showResult('assinaturas', data);
+            } catch (error) {
+              showResult('assinaturas', {
+                error: 'Ocorreu um erro na requisição.',
+                details: error.message,
+              });
+            }
+          });
+
+        document
+          .getElementById('form-cancel-subscription')
+          .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const subId = document.getElementById('cancel_sub_id').value;
+            const url = `${BASE_URL}/cancelSubscription/${subId}`;
+            showResult('assinaturas', { message: 'Carregando...' });
+            try {
+              const response = await fetch(url);
+              const data = await response.json();
+              showResult('assinaturas', data);
+            } catch (error) {
+              showResult('assinaturas', {
+                error: 'Ocorreu um erro na requisição.',
+                details: error.message,
+              });
+            }
+          });
+
+        // Initial state
+        switchTab('checkout');
+      });
+    </script>
+  </body>
+</html>

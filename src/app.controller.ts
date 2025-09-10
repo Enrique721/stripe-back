@@ -3,23 +3,25 @@ import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-  ) { }
+  constructor(private readonly appService: AppService) {}
 
+  @Get('no-cost')
+  async createNoCostSession(): Promise<any> {
+    return this.appService.createStripeSessionNoCard();
+  }
 
   // Listagem -----------------------------------------------------
-  @Get("listPrices")
+  @Get('listPrices')
   async listPrices(): Promise<any> {
     return this.appService.listPrices();
   }
 
-  @Get("listClients")
+  @Get('listClients')
   async listClients(): Promise<any> {
     return this.appService.listClients();
   }
 
-  @Get("listSessions")
+  @Get('listSessions')
   async listSession(): Promise<any> {
     return this.appService.listSessions();
   }
@@ -35,16 +37,16 @@ export class AppController {
   }
   // ---------------------------------------------------------------
 
-
   // Create checkout sessions subscription -------------------------
   @Get('createSession')
   async createSessionStripe(): Promise<any> {
-
     return await this.appService.createStripeSession();
   }
 
   @Get('createSession/:cus_id')
-  async createSessionStripeWithId(@Param('cus_id') customerID: string): Promise<any> {
+  async createSessionStripeWithId(
+    @Param('cus_id') customerID: string,
+  ): Promise<any> {
     return await this.appService.createStripeSessionWithCustomerId(customerID);
   }
   // ---------------------------------------------------------------
@@ -53,34 +55,26 @@ export class AppController {
   async updateSession(
     @Param('sub_id') subscriptionID: string,
     @Param('subscription_item_id') subscriptionItemID,
-    @Param('update_price_id') update_price_id
+    @Param('update_price_id') update_price_id,
   ) {
-
     if (
       !subscriptionID.trim() ||
       !subscriptionItemID.trim() ||
       !update_price_id.trim()
     )
-      return
+      return;
 
     return this.appService.updateSubscription(
       subscriptionID,
       subscriptionItemID,
-      update_price_id
+      update_price_id,
     );
   }
 
   @Get('cancelSubscription/:sub_id')
-  async cancelSubscription(
-    @Param('sub_id') subscriptionID: string,
-  ) {
+  async cancelSubscription(@Param('sub_id') subscriptionID: string) {
+    if (!subscriptionID.trim()) return;
 
-    if (!subscriptionID.trim())
-      return
-
-    return this.appService.cancelSubscription(
-      subscriptionID,
-    );
+    return this.appService.cancelSubscription(subscriptionID);
   }
-
 }
